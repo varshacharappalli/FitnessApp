@@ -1,28 +1,22 @@
 import bcrypt from 'bcryptjs';
-
 import connection from '../lib/sql';
-import { query } from 'express';
+import { generateToken } from '../lib/utils';
 
-
-checkUserExists=async(username)=>{
-    return new Promise((resolve,reject)=>{
-        const query='Select * from Users where username=? LIMIT 1';
-        connection.query((query,[username],(err,results)=>{
-            if (err) {
-                return reject(err);
-            }
+const checkUserExists = async (username) => {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM Users WHERE username = ? LIMIT 1';
+        connection.query(query, [username], (err, results) => {
+            if (err) return reject(err);
             resolve(results.length > 0);
-        })
-        )
-    }
-    )
-}
+        });
+    });
+};
 
 export const signUp = async (req, res) => {
     try {
-        const { first_name, last_name, password, dob, age, gender, username } = req.body;
+        const { first_name, last_name, password, dob, age, gender, username, emails } = req.body;
 
-        if (!first_name || !last_name || !dob || !password || !age || !gender || !username) {
+        if (!first_name || !last_name || !dob || !password || !age || !gender || !username || !emails) {
             return res.status(400).json({ message: 'All fields must be entered' });
         }
         if (password.length < 6) {
@@ -47,13 +41,14 @@ export const signUp = async (req, res) => {
             const emailQuery = 'INSERT INTO EMAIL (user_id, email) VALUES ?';
             const emailValues = emails.map(email => [user_id, email]);
 
-            connection.query(emailQuery, [emailValues], (emailErr, emailResults) => {
+            connection.query(emailQuery, [emailValues], (emailErr) => {
                 if (emailErr) {
                     return res.status(500).json({ message: 'Error inserting emails', error: emailErr });
                 }
+
+                generateToken(user_id, res);
                 res.status(201).json({ message: 'User registered successfully with emails' });
             });
-            res.status(201).json({ message: 'User registered successfully' });
         });
 
     } catch (error) {
@@ -62,35 +57,47 @@ export const signUp = async (req, res) => {
     }
 };
 
-export const signIn=(req,res)=>{
+export const signIn = (req, res) => {
     try {
-        const {username,password}=req.body;
-        if(!username||!password){
-            return res.status(404).json({message:'All the fields must be entered'});
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ message: 'All fields must be entered' });
         }
-        const userPassword="";
-        const query='Select password from Users where username=? LIMIT 1'
-        connection.query(query,[username],(err,results)=>{
-            if(err){
-                return res.status(500).json({ message: 'Error'});
+
+        const query = 'SELECT user_id, password FROM Users WHERE username = ? LIMIT 1';
+        connection.query(query, [username], async (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: 'Database error', error: err });
             }
-            userPassword=results;
-        })
-        const isPasswordCorrect=bcrypt.compare(password,userPassword);
-        if(!isPasswordCorrect){
-            return res.status(500).json({ message: 'Password is incorrect'});
-        }
-        res.status(200).json({message:'User signed in successfully'});
+
+            if (results.length === 0) {
+                return res.status(400).json({ message: 'User does not exist' });
+            }
+
+            const { user_id, password: hashedPassword } = results[0];
+            const isPasswordCorrect = await bcrypt.compare(password, hashedPassword);
+
+            if (!isPasswordCorrect) {
+                return res.status(400).json({ message: 'Password is incorrect' });
+            }
+
+            generateToken(user_id, res);
+            res.status(200).json({ message: 'User signed in successfully' });
+        });
+
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
 
-
-export const logOut=(req,res)=>{
+export const logOut = (req, res) => {
     try {
-        
+        res.cookie("jwt","",{maxAge:0});
+        res.status(200).json({ message: 'User logged out successfully' });
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-}
+};
