@@ -21,15 +21,6 @@ const SignIn = () => {
     setLoading(true);
     setError('');
 
-    try {
-      const response = await axios.post('/api/auth/signin', formData);
-      console.log(response.data);
-      navigate('/dashboard'); // Redirect to dashboard after successful login
-    } catch (error) {
-      setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (

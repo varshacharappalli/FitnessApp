@@ -44,22 +44,14 @@ const SignUp = () => {
     setLoading(true);
     setError('');
 
-    // Basic validation
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
       setLoading(false);
       return;
     }
 
-    try {
-      const response = await axios.post('/api/auth/signup', formData);
-      console.log(response.data);
-      navigate('/signin');
-    } catch (error) {
-      setError(error.response?.data?.message || 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
+    navigate('/createProfile');
+
   };
 
   return (
