@@ -1,6 +1,6 @@
 import express from 'express';
 import authRoutes from './routes/authRoutes.js'
-import { connection } from './lib/sql.js'
+import  connection  from './lib/sql.js'
 
 const app=express();
 
