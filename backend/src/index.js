@@ -4,6 +4,9 @@ import  connection  from './lib/sql.js'
 import verifyToken from './middleware/protectedRoute.js';
 import { createProfile } from './controllers/profile.controllers.js';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+
+dotenv.config({path:'src/.env'});
 
 const app=express();
 

@@ -16,6 +16,11 @@ export const signUp = async (req, res) => {
     try {
         const { first_name, last_name, password, dob, age, gender, username, emails } = req.body;
 
+        console.log("Emails received:", emails);
+        console.log("Type of emails:", typeof emails);
+        console.log("Is emails an array?", Array.isArray(emails));
+
+
         if (!first_name || !last_name || !dob || !password || !age || !gender || !username || !emails) {
             return res.status(400).json({ message: 'All fields must be entered' });
         }
