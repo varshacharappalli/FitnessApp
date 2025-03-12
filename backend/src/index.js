@@ -3,6 +3,7 @@ import authRoutes from './routes/authRoutes.js'
 import  connection  from './lib/sql.js'
 import verifyToken from './middleware/protectedRoute.js';
 import { createProfile } from './controllers/profile.controllers.js';
+import cookieParser from 'cookie-parser';
 
 const app=express();
 

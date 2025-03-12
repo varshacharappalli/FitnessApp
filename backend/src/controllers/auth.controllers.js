@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import connection from '../lib/sql';
-import { generateToken } from '../lib/utils';
+import connection from '../lib/sql.js';
+import { generateToken } from '../lib/utils.js';
 
 const checkUserExists = async (username) => {
     return new Promise((resolve, reject) => {

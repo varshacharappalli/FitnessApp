@@ -1,4 +1,4 @@
-import connection from "../lib/sql";
+import connection from "../lib/sql.js";
 
 export const createProfile = (req, res) => {
     const { height, weight, difficulty_level } = req.body;
