@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import CreateProfile from './pages/createProfile';
+import CreateGoal from './pages/CreateGoal';
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
         <Route path='/signUp' element={<SignUp/>}/>
         <Route path='/signIn' element={<SignIn/>}/>
         <Route path='/createProfile' element={<CreateProfile/>}/>
+        <Route path='/createGoal' element={<CreateGoal/>}/>
       </Routes>
     </>
   )
