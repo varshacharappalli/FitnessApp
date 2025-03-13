@@ -212,33 +212,32 @@ export const viewActivity = (req, res) => {
 
 export const viewGoal = (req, res) => {
     try {
-        const { user_id } = req; // Extract user_id from the request
+        const user_id = req.user_id;
 
         if (!user_id) {
-            return res.status(400).json({ message: 'User ID is required' });
+            return res.status(400).json({ message: 'User ID is not present' });
         }
 
         const query = 'SELECT * FROM Goals WHERE user_id = ? ORDER BY start_date DESC';
 
         connection.query(query, [user_id], (err, results) => {
             if (err) {
-                console.error("Database Error (viewGoal):", err);
-                return res.status(500).json({ message: 'Failed to retrieve goals' });
+                console.error("Fetch Error (Goals):", err);
+                return res.status(500).json({ message: 'Error retrieving goals' });
             }
 
-            if (!results.length) {
-                return res.status(404).json({ message: 'No goals found for this user' });
+            if (results.length === 0) {
+                return res.status(404).json({ message: 'No goals found' });
             }
 
-            return res.status(200).json({ goals: results });
+            res.status(200).json({ goals: results });
         });
 
     } catch (error) {
-        console.error("Server Error:", error.message);
-        return res.status(500).json({ message: 'Internal server error' });
+        console.error(error.message);
+        return res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 
 

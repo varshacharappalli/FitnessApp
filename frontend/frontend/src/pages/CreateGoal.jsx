@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
+import useGoalActivityStore from '../store/userGoalsandActivities.js'
 
 const CreateGoal = () => {
   const [formData, setFormData] = useState({
     goal_type: '',
     target_value: ''
   });
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
+  
+  const { createGoal, loading, error } = useGoalActivityStore();
 
-  // Goal types with their human-readable labels and units
   const goalTypes = [
     { value: 'weight_loss', label: 'Weight Loss', unit: 'kcal' },
     { value: 'running_distance', label: 'Running Distance', unit: 'km' },
@@ -22,21 +22,18 @@ const CreateGoal = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
+    
     try {
+      await createGoal(formData);
+      setSuccess('Goal created successfully!');
       setFormData({ goal_type: '', target_value: '' });
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      // Error is handled by the store
+      console.error(err);
     }
   };
 
@@ -105,7 +102,7 @@ const CreateGoal = () => {
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
             disabled={loading}
           >
-            {loading ? 'Creating...' : 'Book Now'}
+            {loading ? 'Creating...' : 'Create Goal'}
           </button>
         </form>
       </div>

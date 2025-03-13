@@ -46,7 +46,6 @@ const SignUp = () => {
     }
 
     await signUp(formData);
-    navigate('/createProfile');
   };
 
   return (
@@ -205,7 +204,8 @@ const SignUp = () => {
           </button>
 
           {isAuthenticated && (
-  <p className="mt-4 text-green-400 text-center">You are successfully authenticated!</p>
+            
+            navigate('/createProfile')
 )}
         </form>
         

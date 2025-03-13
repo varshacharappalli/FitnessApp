@@ -23,8 +23,8 @@ app.use(cookieParser());
 
 
 app.use('/auth',authRoutes);
-app.use('/createProfile',verifyToken,createProfile);
-app.use('/goal&activity',verifyToken,goalandactivityRoutes);
+app.use('/api/profile',verifyToken,createProfile);
+app.use('/api/goals',verifyToken,goalandactivityRoutes);
 
 app.listen(PORT,()=>{
     console.log("Server is running on port:",PORT);

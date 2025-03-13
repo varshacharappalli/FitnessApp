@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import useProfileStore from '../store/userProfile';
 
 const CreateProfile = () => {
   const navigate = useNavigate();
+  const { createProfile, loading, error } = useProfileStore();
   const [formData, setFormData] = useState({
     height: '',
     weight: '',
     difficulty_level: 'Beginner'
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
@@ -20,32 +19,17 @@ const CreateProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
     setSuccess(false);
 
     try {
-      // Get token from cookies or localStorage
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('jwt='))
-        ?.split('=')[1];
-
-      const response = await axios.post('/api/profile/create', formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      console.log(response.data);
+      await createProfile(formData);
       setSuccess(true);
       setTimeout(() => {
         navigate('/dashboard');
       }, 2000);
     } catch (error) {
-      setError(error.response?.data?.message || 'Profile creation failed');
-    } finally {
-      setLoading(false);
+      // Error is already handled in the store
+      console.error(error);
     }
   };
 
@@ -122,8 +106,6 @@ const CreateProfile = () => {
             </button>
           </div>
         </form>
-
-        
       </div>
     </div>
   );

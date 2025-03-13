@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import {axiosInstance} from '../lib/axios.js'
+import {axiosInstance} from '../lin/axios.js'
 
 const useUserAuth = create((set) => ({
     user: null,

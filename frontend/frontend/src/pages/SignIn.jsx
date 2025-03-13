@@ -78,7 +78,7 @@ const SignIn = () => {
           </button>
 
           {isAuthenticated && (
-  <p className="mt-4 text-green-400 text-center">You are successfully authenticated!</p>
+            navigate('/dashboard')
 )}
         </form>
 
