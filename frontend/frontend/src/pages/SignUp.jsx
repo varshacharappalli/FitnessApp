@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import useUserAuth from '../store/userAuth.js';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const { signUp, loading, error,isAuthenticated } = useUserAuth();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -14,8 +15,6 @@ const SignUp = () => {
     gender: 'Male',
     emails: ['']
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,17 +40,13 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
       return;
     }
 
+    await signUp(formData);
     navigate('/createProfile');
-
   };
 
   return (
@@ -65,92 +60,103 @@ const SignUp = () => {
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1 text-gray-300">First Name</label>
+              <label htmlFor="first_name" className="block text-sm font-medium mb-1">First Name</label>
               <input 
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleChange}
-                className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
-                required
+                type="text" 
+                id="first_name"
+                name="first_name" 
+                value={formData.first_name} 
+                onChange={handleChange} 
+                placeholder="John" 
+                className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+                required 
               />
             </div>
             <div>
-              <label className="block mb-1 text-gray-300">Last Name</label>
+              <label htmlFor="last_name" className="block text-sm font-medium mb-1">Last Name</label>
               <input 
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
-                required
+                type="text" 
+                id="last_name"
+                name="last_name" 
+                value={formData.last_name} 
+                onChange={handleChange} 
+                placeholder="Doe" 
+                className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+                required 
               />
             </div>
           </div>
-
+          
           <div>
-            <label className="block mb-1 text-gray-300">Username</label>
+            <label htmlFor="username" className="block text-sm font-medium mb-1">Username</label>
             <input 
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
-              required
+              type="text" 
+              id="username"
+              name="username" 
+              value={formData.username} 
+              onChange={handleChange} 
+              placeholder="johndoe123" 
+              className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+              required 
             />
           </div>
-
+          
           <div>
-            <label className="block mb-1 text-gray-300">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
             <input 
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
+              type="password" 
+              id="password"
+              name="password" 
+              value={formData.password} 
+              onChange={handleChange} 
+              placeholder="••••••" 
               minLength="6"
-              required
+              className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+              required 
             />
-            <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
+            <p className="text-xs text-gray-400 mt-1">Password must be at least 6 characters</p>
           </div>
-
+          
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1 text-gray-300">Date of Birth</label>
+              <label htmlFor="dob" className="block text-sm font-medium mb-1">Date of Birth</label>
               <input 
-                type="date"
-                name="dob"
-                value={formData.dob}
-                onChange={handleChange}
-                className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
-                required
+                type="date" 
+                id="dob"
+                name="dob" 
+                value={formData.dob} 
+                onChange={handleChange} 
+                className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+                required 
               />
             </div>
             <div>
-              <label className="block mb-1 text-gray-300">Age</label>
+              <label htmlFor="age" className="block text-sm font-medium mb-1">Age</label>
               <input 
-                type="number"
-                name="age"
-                value={formData.age}
-                onChange={handleChange}
-                className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
-                required
-                min="16"
+                type="number" 
+                id="age"
+                name="age" 
+                value={formData.age} 
+                onChange={handleChange} 
+                min="16" 
                 max="120"
+                className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+                required 
               />
             </div>
           </div>
-
+          
           <div>
-            <label className="block mb-1 text-gray-300">Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
+            <label htmlFor="gender" className="block text-sm font-medium mb-1">Gender</label>
+            <select 
+              id="gender"
+              name="gender" 
+              value={formData.gender} 
+              onChange={handleChange} 
+              className="w-full bg-gray-800 rounded border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
               required
             >
               <option value="Male">Male</option>
@@ -158,55 +164,60 @@ const SignUp = () => {
               <option value="Other">Other</option>
             </select>
           </div>
-
+          
           <div>
-            <label className="block mb-1 text-gray-300">Email Addresses</label>
+            <label className="block text-sm font-medium mb-1">Email Address{formData.emails.length > 1 ? 'es' : ''}</label>
             {formData.emails.map((email, index) => (
-              <div key={index} className="flex mb-2">
+              <div key={index} className="flex items-center mb-2">
                 <input 
-                  type="email"
-                  value={email}
-                  onChange={(e) => handleEmailChange(index, e.target.value)}
-                  className="w-full p-3 rounded-l bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none"
-                  required
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => handleEmailChange(index, e.target.value)} 
+                  placeholder="youremail@example.com"
+                  className="flex-grow bg-gray-800 rounded-l border border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 text-base outline-none py-2 px-3 transition-colors duration-200 ease-in-out"
+                  required 
                 />
                 <button 
-                  type="button"
-                  onClick={() => removeEmailField(index)}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 rounded-r"
+                  type="button" 
+                  onClick={() => removeEmailField(index)} 
                   disabled={formData.emails.length <= 1}
+                  className={`px-3 py-2 bg-red-700 text-white rounded-r ${formData.emails.length <= 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-800'}`}
                 >
-                  -
+                  <span className="font-bold">-</span>
                 </button>
               </div>
             ))}
             <button 
-              type="button"
+              type="button" 
               onClick={addEmailField}
-              className="mt-1 text-purple-400 hover:text-purple-300 text-sm"
+              className="text-blue-400 hover:text-blue-300 text-sm flex items-center"
             >
-              + Add another email
+              <span className="font-bold text-lg mr-1">+</span> Add another email
             </button>
           </div>
-
+          
           <button 
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-medium mt-6"
+            type="submit" 
             disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
-        </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-400">Already have an account?</p>
+          {isAuthenticated && (
+  <p className="mt-4 text-green-400 text-center">You are successfully authenticated!</p>
+)}
+        </form>
+        
+        <p className="mt-6 text-center text-gray-400">
+          Already have an account?{' '}
           <button 
             onClick={() => navigate('/signin')}
-            className="text-purple-400 hover:text-purple-300 font-medium"
+            className="text-blue-400 hover:text-blue-300 font-medium"
           >
             Sign In
           </button>
-        </div>
+        </p>
       </div>
     </div>
   );

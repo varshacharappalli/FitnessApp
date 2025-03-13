@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import useUserAuth from '../store/userAuth.js';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const { signIn, error, loading,isAuthenticated} = useUserAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,9 +17,10 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    await signIn({
+      username: formData.username,
+      password: formData.password
+    });
   };
 
   return (
@@ -37,7 +37,7 @@ const SignIn = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block mb-1 text-gray-300">Username</label>
-            <input 
+            <input
               type="text"
               name="username"
               value={formData.username}
@@ -49,7 +49,7 @@ const SignIn = () => {
 
           <div>
             <label className="block mb-1 text-gray-300">Password</label>
-            <input 
+            <input
               type="password"
               name="password"
               value={formData.password}
@@ -60,7 +60,7 @@ const SignIn = () => {
           </div>
 
           <div className="flex justify-end">
-            <button 
+            <button
               type="button"
               className="text-purple-400 hover:text-purple-300 text-sm"
               onClick={() => navigate('/forgot-password')}
@@ -69,18 +69,22 @@ const SignIn = () => {
             </button>
           </div>
 
-          <button 
+          <button
             type="submit"
             className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded font-medium"
             disabled={loading}
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
+
+          {isAuthenticated && (
+  <p className="mt-4 text-green-400 text-center">You are successfully authenticated!</p>
+)}
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-400">Don't have an account?</p>
-          <button 
+          <button
             onClick={() => navigate('/signup')}
             className="text-purple-400 hover:text-purple-300 font-medium"
           >
@@ -89,7 +93,7 @@ const SignIn = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="text-gray-400 hover:text-white text-sm"
           >

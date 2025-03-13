@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import SideBar from '../components/SideBar';
 
 const CreateGoal = () => {
   const [formData, setFormData] = useState({
