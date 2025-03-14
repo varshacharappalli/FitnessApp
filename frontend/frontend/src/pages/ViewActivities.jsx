@@ -4,18 +4,17 @@ import useGoalActivityStore from '../store/userGoalsandActivities.js';
 
 const ViewActivities = () => {
   const { goalId } = useParams();
-  const { activities, goals, fetchActivities, fetchGoals, loading, error } = useGoalActivityStore();
+  const { goals, activities, fetchGoals, fetchActivities, loading, error } = useGoalActivityStore();
   const [goalActivities, setGoalActivities] = useState([]);
   const [selectedGoal, setSelectedGoal] = useState(null);
 
   useEffect(() => {
-    // Fetch both activities and goals
-    fetchActivities();
     fetchGoals();
-  }, [fetchActivities, fetchGoals]);
+    fetchActivities(goalId); // Pass goalId if your fetchActivities can filter by goal
+  }, [goalId, fetchGoals, fetchActivities]);
 
   useEffect(() => {
-    // Update selected goal when goals are loaded
+    // Find the selected goal when goals are loaded
     if (goals.length > 0 && goalId) {
       const goal = goals.find(g => g.goal_id.toString() === goalId);
       setSelectedGoal(goal);
@@ -23,30 +22,18 @@ const ViewActivities = () => {
   }, [goals, goalId]);
 
   useEffect(() => {
-    // Filter activities for the current goal using the ACHEIVES relationship
-    if (activities.length > 0 && goalId) {
-      // Since your backend likely filters by joined ACHEIVES table,
-      // we need to implement this client-side
-      // In a real implementation, you might want a specific API endpoint for this
-      
-      // This is a placeholder for the actual filtering logic you'd implement
-      // based on your database schema
-      const filteredActivities = activities.filter(activity => {
-        // You might need to check if activity has a relationship with this goal
-        // This is just a placeholder - adjust according to your actual data structure
-        return true; // Replace with actual filtering logic
-      });
-      
-      setGoalActivities(filteredActivities);
+    // Filter activities for the current goal
+    // Assuming activities are already filtered by the backend
+    if (activities.length > 0) {
+      setGoalActivities(activities);
     }
-  }, [activities, goalId]);
+  }, [activities]);
 
   // Goal types mapping for display purposes
   const goalTypeLabels = {
-    weight_loss: 'Weight Loss',
-    running_distance: 'Running Distance',
-    exercise_duration: 'Exercise Duration',
-    daily_step: 'Daily Step'
+    kcal: 'Calories Burnt',
+    kms: 'Distance',
+    duration: 'Exercise Duration'
   };
 
   const formatDate = (dateString) => {
@@ -54,7 +41,7 @@ const ViewActivities = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  if (loading && (!selectedGoal || goalActivities.length === 0)) {
+  if (loading && (!selectedGoal)) {
     return <div className="text-center py-8 text-white">Loading...</div>;
   }
 

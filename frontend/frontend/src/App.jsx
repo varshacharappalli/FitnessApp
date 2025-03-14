@@ -18,6 +18,7 @@ function App() {
         <Route path='/signUp' element={<SignUp/>}/>
         <Route path='/signIn' element={<SignIn/>}/>
         <Route path='/createProfile' element={<CreateProfile/>}/>
+        <Route path='/create-goal' element={<CreateGoal/>}/>
         <Route path='/createGoal' element={<CreateGoal/>}/>
         <Route path="/create-activity/:goalId" element={<CreateActivity />} />
         <Route path='/viewGoals' element={<ViewGoals/>}/>

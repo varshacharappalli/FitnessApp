@@ -5,7 +5,7 @@ import useGoalActivityStore from '../store/userGoalsandActivities.js';
 const CreateActivity = () => {
   const { goalId } = useParams();
   const navigate = useNavigate();
-  const { goals, fetchGoals, createActivity, loading, error } = useGoalActivityStore();
+  const { goals, fetchGoals, createActivity, updateGoal, loading, error } = useGoalActivityStore();
   
   const [formData, setFormData] = useState({
     goal_id: goalId,
@@ -17,51 +17,46 @@ const CreateActivity = () => {
   const [success, setSuccess] = useState('');
   const [selectedGoal, setSelectedGoal] = useState(null);
 
-  // Fetch goals if they're not already loaded
+  // Fetch goals if not already loaded
   useEffect(() => {
     if (goals.length === 0) {
       fetchGoals();
-    } else {
-      // Find the selected goal
+    }
+  }, [goals.length, fetchGoals]);
+
+  // Find the selected goal when goals are loaded
+  useEffect(() => {
+    if (goals.length > 0 && goalId) {
       const goal = goals.find(g => g.goal_id.toString() === goalId);
-      setSelectedGoal(goal);
-      
-      // Set default activity type based on goal type
       if (goal) {
+        setSelectedGoal(goal);
+        
+        // Set default activity type based on goal type
         let defaultType = '';
         switch(goal.goal_type) {
-          case 'weight_loss':
+          case 'kcal':
             defaultType = 'cardio';
             break;
-          case 'running_distance':
+          case 'kms':
             defaultType = 'running';
             break;
-          case 'exercise_duration':
+          case 'duration':
             defaultType = 'workout';
             break;
-          case 'daily_step':
-            defaultType = 'walking';
-            break;
           default:
-            defaultType = 'general';
+            defaultType = 'cardio';
         }
         
         setFormData(prev => ({ ...prev, activity_type: defaultType }));
       }
     }
-  }, [goalId, goals, fetchGoals]);
-
-  useEffect(() => {
-    // Set the goal_id in form data when goalId changes
-    setFormData(prev => ({ ...prev, goal_id: goalId }));
-  }, [goalId]);
+  }, [goals, goalId]);
 
   // Goal types mapping for display purposes
   const goalTypeLabels = {
-    weight_loss: 'Weight Loss',
-    running_distance: 'Running Distance',
-    exercise_duration: 'Exercise Duration',
-    daily_step: 'Daily Step'
+    kcal: 'Calories Burnt',
+    kms: 'Distance',
+    duration: 'Exercise Duration'
   };
 
   const handleChange = (e) => {
@@ -77,11 +72,21 @@ const CreateActivity = () => {
     e.preventDefault();
     
     try {
+      // Make sure all required fields are present
+      if (!formData.goal_id || !formData.activity_type || 
+          !formData.calories_burnt || !formData.distance || 
+          !formData.duration) {
+        return;
+      }
+      
       const success = await createActivity(formData);
       if (success) {
+        // Update the goal to reflect the new activity
+        await updateGoal({ goal_id: goalId });
+        
         setSuccess('Activity recorded successfully!');
         
-        // Reset form values except goal_id
+        // Reset form values except goal_id and activity_type
         setFormData({
           goal_id: goalId,
           activity_type: formData.activity_type,
