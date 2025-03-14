@@ -67,10 +67,10 @@ const useGoalActivityStore = create((set, get) => ({
     }
   },
 
-  updateGoal: async (goalData) => {
+  updateGoal: async (goalId) => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.put('/api/goals/updateGoal', goalData);
+      const response = await axiosInstance.patch('/api/goals/updateGoal', { goal_id: goalId });
       await get().fetchGoals();
       set({ loading: false });
       return response.data;

@@ -81,7 +81,7 @@ const CreateActivity = () => {
       
       const success = await createActivity(formData);
       if (success) {
-        // Update the goal to reflect the new activity
+        console.log("Updating the goal")
         await updateGoal({ goal_id: goalId });
         
         setSuccess('Activity recorded successfully!');

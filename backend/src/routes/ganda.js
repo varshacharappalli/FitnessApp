@@ -5,9 +5,9 @@ const goalandactivityRoutes = express.Router();
 
 goalandactivityRoutes.post('/createGoal', createGoal);
 goalandactivityRoutes.post('/createActivity', createActivity);
-goalandactivityRoutes.put('/updateGoal', updateGoal);
 goalandactivityRoutes.delete('/deleteGoal', deleteGoal); 
 goalandactivityRoutes.get('/viewGoal', viewGoal); 
 goalandactivityRoutes.post('/viewActivities', viewActivity); 
+goalandactivityRoutes.patch('/updateGoal', updateGoal);
 
 export default goalandactivityRoutes;

@@ -91,6 +91,12 @@ export const updateGoal = (req, res) => {
             }
 
             const goal_type = results[0].goal_type;
+            const validGoalTypes = ['kcal', 'kms', 'duration'];
+
+            if (!validGoalTypes.includes(goal_type)) {
+                return res.status(400).json({ message: 'Invalid goal type' });
+            }
+
             const query2 = 'SELECT activity_id FROM Acheives WHERE goal_id = ?';
 
             connection.query(query2, [goal_id], (err, results) => {
@@ -104,19 +110,23 @@ export const updateGoal = (req, res) => {
                 }
 
                 const activity_ids = results.map(row => row.activity_id);
-
-                let query1;
-                if (goal_type === 'kcal') {
-                    query1 = `SELECT SUM(calories_burnt) AS total FROM Activities WHERE activity_id IN (?)`;
-                } else if (goal_type === 'kms') {
-                    query1 = `SELECT SUM(distance) AS total FROM Activities WHERE activity_id IN (?)`;
-                } else if (goal_type === 'duration') {
-                    query1 = `SELECT SUM(duration) AS total FROM Activities WHERE activity_id IN (?)`;
-                } else {
-                    return res.status(400).json({ message: 'Invalid goal type' });
+                if (activity_ids.length === 0) {
+                    return res.status(404).json({ message: 'No activities linked to this goal' });
                 }
 
-                connection.query(query1, [activity_ids], (err, results) => {
+                let column;
+                if (goal_type === 'kcal') {
+                    column = 'calories_burnt';
+                } else if (goal_type === 'kms') {
+                    column = 'distance';
+                } else if (goal_type === 'duration') {
+                    column = 'duration';
+                }
+
+                const query1 = `SELECT SUM(${column}) AS total FROM Activities WHERE activity_id IN (${activity_ids.join(",")})`;
+                console.log(activity_ids);
+
+                connection.query(query1, (err, results) => {
                     if (err) {
                         console.log(err.message);
                         return res.status(500).json({ message: 'Error calculating goal progress' });
@@ -263,4 +273,5 @@ export const deleteGoal = (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
+
 
