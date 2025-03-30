@@ -25,27 +25,30 @@ const useGoalActivityStore = create((set, get) => ({
   },
 
   createGoal: async (goalData) => {
+    console.log("Sending goal data:", goalData);  // Debugging
+  
     set({ loading: true, error: null });
     try {
-      // Backend expects goal_type and target_value
-      const response = await axiosInstance.post('/api/goals/createGoal', {
-        goal_type: goalData.goalType,
-        target_value: goalData.targetValue
-      });
+      const response=axiosInstance.post("api/goals/createGoal", goalData, {
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(response => console.log("Goal created:", response.data))
+      .catch(error => console.error("Error creating goal:", error.response?.data || error.message));
       
-      // Refresh goals after creation
+  
       await get().fetchGoals();
       set({ loading: false });
       return response.data;
     } catch (error) {
-      console.error("Error creating goal:", error);
+      console.error("Error creating goal:", error.response?.data || error.message);
       set({
         error: error.response?.data?.message || 'Error creating goal',
         loading: false
       });
       return null;
     }
-  },
+  }
+  ,
 
   updateGoal: async (goalId) => {
     set({ loading: true, error: null });

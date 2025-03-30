@@ -10,28 +10,25 @@ const CreateActivity = () => {
   const [formData, setFormData] = useState({
     goal_id: goalId,
     activity_type: '',
-    calories_burnt: '',
-    distance: '',
-    duration: '',
+    calories_burnt: 0,
+    distance: 0,
+    duration: 0,
   });
   const [success, setSuccess] = useState('');
   const [selectedGoal, setSelectedGoal] = useState(null);
 
-  // Fetch goals if not already loaded
   useEffect(() => {
     if (goals.length === 0) {
-      fetchGoals();
+      fetchGoals().catch(err => console.error("Error fetching goals:", err));
     }
   }, [goals.length, fetchGoals]);
 
-  // Find the selected goal when goals are loaded
   useEffect(() => {
     if (goals.length > 0 && goalId) {
       const goal = goals.find(g => g.goal_id.toString() === goalId);
       if (goal) {
         setSelectedGoal(goal);
         
-        // Set default activity type based on goal type
         let defaultType = '';
         switch(goal.goal_type) {
           case 'kcal':
@@ -52,7 +49,6 @@ const CreateActivity = () => {
     }
   }, [goals, goalId]);
 
-  // Goal types mapping for display purposes
   const goalTypeLabels = {
     kcal: 'Calories Burnt',
     kms: 'Distance',
@@ -61,47 +57,38 @@ const CreateActivity = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: name === 'goal_id' ? value : 
-              ['calories_burnt', 'distance', 'duration'].includes(name) ? parseFloat(value) : value
-    });
+    setFormData(prev => ({
+      ...prev,
+      [name]: ['calories_burnt', 'distance', 'duration'].includes(name) ? (value ? parseFloat(value) : 0) : value
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("🚀 Submitting Activity Data:", formData);
     
-    try {
-      // Make sure all required fields are present
-      if (!formData.goal_id || !formData.activity_type || 
-          !formData.calories_burnt || !formData.distance || 
-          !formData.duration) {
+    if (!formData.goal_id || !formData.activity_type) {
+        console.error("⚠️ Missing goal_id or activity_type!", formData);
         return;
-      }
-      
-      const success = await createActivity(formData);
-      if (success) {
-        console.log("Updating the goal")
-        await updateGoal({ goal_id: goalId });
-        
-        setSuccess('Activity recorded successfully!');
-        
-        // Reset form values except goal_id and activity_type
-        setFormData({
-          goal_id: goalId,
-          activity_type: formData.activity_type,
-          calories_burnt: '',
-          distance: '',
-          duration: ''
-        });
-        
-        // Navigate back to activities view after 2 seconds
-        setTimeout(() => {
-          navigate(`/view-activities/${goalId}`);
-        }, 2000);
-      }
+    }
+
+    const activityData = {
+      goalId: formData.goal_id,
+      activityType: formData.activity_type,
+      caloriesBurnt: formData.calories_burnt,
+      distance: formData.distance,
+      duration: formData.duration
+    };
+
+    try {
+        const success = await createActivity(activityData);
+        if (success) {
+            await updateGoal({ goal_id: goalId });
+            setSuccess('Activity recorded successfully!');
+            setTimeout(() => navigate(`/view-activities/${goalId}`), 2000);
+        }
     } catch (err) {
-      console.error("Error submitting activity:", err);
+        console.error("❌ Error submitting activity:", err);
     }
   };
 
@@ -161,58 +148,34 @@ const CreateActivity = () => {
             <label className="block text-white font-bold mb-2" htmlFor="calories_burnt">
               Calories Burnt
             </label>
-            <input
-              type="number"
-              id="calories_burnt"
-              name="calories_burnt"
-              value={formData.calories_burnt}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white"
-              min="0"
-              step="1"
-              required
-            />
+            <input type="number" id="calories_burnt" name="calories_burnt" value={formData.calories_burnt} onChange={handleChange} className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white" min="0" step="1" required />
           </div>
           
           <div>
             <label className="block text-white font-bold mb-2" htmlFor="distance">
               Distance (km)
             </label>
-            <input
-              type="number"
-              id="distance"
-              name="distance"
-              value={formData.distance}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white"
-              min="0"
-              step="0.01"
-              required
-            />
+            <input type="number" id="distance" name="distance" value={formData.distance} onChange={handleChange} className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white" min="0" step="0.01" required />
           </div>
           
           <div>
-            <label className="block text-white font-bold mb-2" htmlFor="duration">
-              Duration (minutes)
-            </label>
-            <input
-              type="number"
-              id="duration"
-              name="duration"
-              value={formData.duration}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white"
-              min="0"
-              step="1"
-              required
-            />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
-            disabled={loading}
-          >
+  <label className="block text-white font-bold mb-2" htmlFor="duration">
+    Duration (minutes)
+  </label>
+  <input
+    type="number"
+    id="duration"
+    name="duration"
+    value={formData.duration}
+    onChange={handleChange}
+    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white"
+    min="0"
+    step="1"
+    required
+  />
+</div>
+
+          <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline" disabled={loading}>
             {loading ? 'Recording...' : 'Record Activity'}
           </button>
         </form>
