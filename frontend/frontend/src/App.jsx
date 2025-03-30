@@ -22,7 +22,7 @@ function App() {
         <Route path='/createGoal' element={<CreateGoal/>}/>
         <Route path="/create-activity/:goalId" element={<CreateActivity />} />
         <Route path='/viewGoals' element={<ViewGoals/>}/>
-        <Route path='/view-activities/:goalId' element={<ViewActivities/>}/>
+        <Route path='/viewActivities' element={<ViewActivities/>}/>
         <Route path='/dashboard' element={<Dashboard/>}/>
       </Routes>
     </>

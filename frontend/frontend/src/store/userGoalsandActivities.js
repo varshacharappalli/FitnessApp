@@ -53,25 +53,32 @@ const useGoalActivityStore = create((set, get) => ({
   updateGoal: async (goalId) => {
     set({ loading: true, error: null });
     try {
-      console.log("Updating goal with ID:", goalId);
-      // Backend expects just goal_id for updating
-      const response = await axiosInstance.patch('/api/goals/updateGoal', { 
-        goal_id: goalId 
+      // Extract the ID if an object was passed
+      const id = typeof goalId === 'object' ? goalId.goal_id : goalId;
+      
+      console.log("Updating goal with ID:", id);
+      
+      // Make sure we have a valid ID
+      if (!id) {
+        throw new Error('Invalid goal ID');
+      }
+      
+      const response = await axiosInstance.post('/api/goals/updateGoal', { 
+        goal_id: id 
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
+      // Rest of your function remains the same
       console.log("Goal update response:", response.data);
-      
-      // Refresh goals after update
       await get().fetchGoals();
       set({ loading: false });
       return response.data;
     } catch (error) {
-      console.error("Error updating goal:", error);
-      set({
-        error: error.response?.data?.message || 'Error updating goal',
-        loading: false
-      });
-      return null;
+      console.log(error.message);
     }
   },
 

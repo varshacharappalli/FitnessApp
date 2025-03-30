@@ -8,6 +8,6 @@ goalandactivityRoutes.post('/createActivity', createActivity);
 goalandactivityRoutes.delete('/deleteGoal', deleteGoal); 
 goalandactivityRoutes.get('/viewGoal', viewGoal); 
 goalandactivityRoutes.post('/viewActivity', viewActivity); 
-goalandactivityRoutes.patch('/updateGoal', updateGoal);
+goalandactivityRoutes.post('/updateGoal', updateGoal);
 
 export default goalandactivityRoutes;

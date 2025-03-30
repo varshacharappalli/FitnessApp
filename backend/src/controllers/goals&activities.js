@@ -74,6 +74,8 @@ export const updateGoal = (req, res) => {
         const { goal_id } = req.body;
         const user_id = req.user_id;
 
+        console.log("Received goal_id:", goal_id, "Type:", typeof goal_id);
+
         if (!user_id) {
             return res.status(400).json({ message: 'User ID is not present' });
         }
