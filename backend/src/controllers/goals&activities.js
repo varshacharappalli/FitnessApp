@@ -78,6 +78,7 @@ export const updateGoal = (req, res) => {
             return res.status(400).json({ message: 'User ID is not present' });
         }
 
+        // First, verify the goal exists and get its type
         const query = 'SELECT goal_type FROM Goals WHERE goal_id = ? AND user_id = ?';
 
         connection.query(query, [goal_id, user_id], (err, results) => {
@@ -97,23 +98,31 @@ export const updateGoal = (req, res) => {
                 return res.status(400).json({ message: 'Invalid goal type' });
             }
 
+            // Get activity IDs linked to this goal
             const query2 = 'SELECT activity_id FROM Acheives WHERE goal_id = ?';
 
             connection.query(query2, [goal_id], (err, results) => {
                 if (err) {
-                    console.log(err.message);
+                    console.log("Error fetching activity IDs:", err.message);
                     return res.status(500).json({ message: 'Error fetching activity IDs' });
                 }
 
                 if (results.length === 0) {
-                    return res.status(404).json({ message: 'No activities linked to this goal' });
+                    // If no activities found, set current_value to 0 and return
+                    connection.query('UPDATE Goals SET current_value = 0 WHERE goal_id = ?', [goal_id], (err) => {
+                        if (err) {
+                            console.log("Error updating goal with zero value:", err.message);
+                            return res.status(500).json({ message: 'Error updating goal' });
+                        }
+                        return res.status(200).json({ message: 'Goal updated successfully!', current_value: 0 });
+                    });
+                    return;
                 }
 
                 const activity_ids = results.map(row => row.activity_id);
-                if (activity_ids.length === 0) {
-                    return res.status(404).json({ message: 'No activities linked to this goal' });
-                }
+                console.log("Activity IDs found:", activity_ids);
 
+                // Determine which column to sum based on goal type
                 let column;
                 if (goal_type === 'kcal') {
                     column = 'calories_burnt';
@@ -123,21 +132,25 @@ export const updateGoal = (req, res) => {
                     column = 'duration';
                 }
 
-                const query1 = `SELECT SUM(${column}) AS total FROM Activities WHERE activity_id IN (${activity_ids.join(",")})`;
-                console.log(activity_ids);
+                // Create placeholders for SQL query
+                const placeholders = activity_ids.map(() => '?').join(',');
+                const query1 = `SELECT SUM(${column}) AS total FROM Activities WHERE activity_id IN (${placeholders})`;
+                console.log("Query:", query1, "Values:", activity_ids);
 
-                connection.query(query1, (err, results) => {
+                connection.query(query1, activity_ids, (err, results) => {
                     if (err) {
-                        console.log(err.message);
+                        console.log("Error calculating sum:", err.message);
                         return res.status(500).json({ message: 'Error calculating goal progress' });
                     }
 
                     const value = results[0].total || 0;
-                    const query3 = 'UPDATE Goals SET current_value = ? WHERE goal_id = ?';
+                    console.log("Calculated value:", value);
+                    
+                    const query3 = 'UPDATE Goals SET current_value = ?, updated_at = ? WHERE goal_id = ?';
 
-                    connection.query(query3, [value, goal_id], (err) => {
+                    connection.query(query3, [value, new Date(), goal_id], (err) => {
                         if (err) {
-                            console.log(err.message);
+                            console.log("Error updating goal value:", err.message);
                             return res.status(500).json({ message: 'Error updating goal' });
                         }
 
@@ -171,14 +184,19 @@ export const viewActivity = (req, res) => {
             }
 
             if (results.length === 0) {
-                return res.status(404).json({ message: 'No activities found for this goal' });
+                return res.status(200).json({ activities: [] });
             }
 
             const activity_ids = results.map(row => row.activity_id);
+            
+            // Use placeholders for IN clause
+            const placeholders = activity_ids.map(() => '?').join(',');
+            const query1 = `SELECT * FROM Activities WHERE activity_id IN (${placeholders}) AND user_id=?`;
+            
+            // Add user_id at the end of the parameters array
+            const queryParams = [...activity_ids, user_id];
 
-            const query1 = `SELECT * FROM Activities WHERE activity_id IN (?) AND user_id=?`;
-
-            connection.query(query1, [activity_ids, user_id], (err, results) => {
+            connection.query(query1, queryParams, (err, results) => {
                 if (err) {
                     console.error("Error fetching activities:", err);
                     return res.status(500).json({ message: 'Error retrieving activities' });
@@ -192,7 +210,6 @@ export const viewActivity = (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 export const viewGoal = (req, res) => {
     try {
@@ -211,7 +228,7 @@ export const viewGoal = (req, res) => {
             }
 
             if (results.length === 0) {
-                return res.status(404).json({ message: 'No goals found' });
+                return res.status(200).json({ goals: [] });
             }
 
             res.status(200).json({ goals: results });
@@ -248,8 +265,11 @@ export const deleteGoal = (req, res) => {
                 }
 
                 if (activity_ids.length > 0) {
-                    const deleteActivitiesQuery = 'DELETE FROM Activities WHERE activity_id IN (?)';
-                    connection.query(deleteActivitiesQuery, [activity_ids], (err) => {
+                    // Use placeholders for IN clause
+                    const placeholders = activity_ids.map(() => '?').join(',');
+                    const deleteActivitiesQuery = `DELETE FROM Activities WHERE activity_id IN (${placeholders})`;
+                    
+                    connection.query(deleteActivitiesQuery, activity_ids, (err) => {
                         if (err) {
                             console.error("Delete Error (Activities):", err);
                             return res.status(500).json({ message: 'Error deleting activities' });
@@ -273,5 +293,3 @@ export const deleteGoal = (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
-
-
