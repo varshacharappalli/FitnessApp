@@ -112,7 +112,7 @@ const Dashboard = () => {
         {/* Main content area */}
         <main className="p-6">
           <div className="bg-gray-800 rounded-lg p-6 shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Welcome to your Fitness Dashboard</h3>
+            <h3 className="text-xl font-semibold mb-4">Welcome to Body Sync</h3>
             <p className="text-gray-300">
               Select an option from the sidebar to get started with your fitness journey.
             </p>
