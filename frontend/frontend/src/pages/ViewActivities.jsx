@@ -1,29 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import useGoalActivityStore from '../store/userGoalsandActivities.js';
+import DashboardLayout from '../components/DashboardLayout';
 
 const ViewActivities = () => {
   const { goalId } = useParams();
-  const { goals, activities, fetchGoals, fetchActivities, loading, error } = useGoalActivityStore();
+  const { goals, activities, fetchGoals, fetchActivities, fetchAllActivities, loading, error, updateGoal } = useGoalActivityStore();
   const [goalActivities, setGoalActivities] = useState([]);
   const [selectedGoal, setSelectedGoal] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchGoals();
-    fetchActivities(goalId); // Pass goalId if your fetchActivities can filter by goal
-  }, [goalId, fetchGoals, fetchActivities]);
+    if (goalId) {
+      fetchGoals();
+      fetchActivities(goalId);
+    } else {
+      fetchAllActivities();
+    }
+  }, [goalId, fetchGoals, fetchActivities, fetchAllActivities]);
 
   useEffect(() => {
-    // Find the selected goal when goals are loaded
     if (goals.length > 0 && goalId) {
       const goal = goals.find(g => g.goal_id.toString() === goalId);
+      if (!goal) {
+        console.error("Goal not found");
+        navigate('/viewGoals');
+        return;
+      }
       setSelectedGoal(goal);
+      if (!selectedGoal) {
+        updateGoal(goalId);
+      }
     }
-  }, [goals, goalId]);
+  }, [goals, goalId, updateGoal, navigate]);
 
   useEffect(() => {
-    // Filter activities for the current goal
-    // Assuming activities are already filtered by the backend
     if (activities.length > 0) {
       setGoalActivities(activities);
     }
@@ -31,9 +42,10 @@ const ViewActivities = () => {
 
   // Goal types mapping for display purposes
   const goalTypeLabels = {
-    kcal: 'Calories Burnt',
-    kms: 'Distance',
-    duration: 'Exercise Duration'
+    weight_loss: 'Calories Burnt',
+    running_distance: 'Distance',
+    exercise_duration: 'Exercise Duration',
+    daily_step: 'Daily Steps'
   };
 
   const formatDate = (dateString) => {
@@ -41,32 +53,36 @@ const ViewActivities = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  if (loading && (!selectedGoal)) {
-    return <div className="text-center py-8 text-white">Loading...</div>;
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto text-center py-8">
+          <p className="text-xl">Loading...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (goalId && !selectedGoal) {
+    return (
+      <DashboardLayout>
+        <div className="max-w-4xl mx-auto text-center py-8">
+          <p className="text-xl">Goal not found</p>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
-    <div className="bg-black text-white min-h-screen p-6">
+    <DashboardLayout>
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold">Activities</h2>
-          <div>
-            <Link 
-              to={`/create-activity/${goalId}`} 
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mr-2"
-            >
-              Add Activity
-            </Link>
-            <Link 
-              to="/goals" 
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Back to Goals
-            </Link>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-white">
+            {goalId ? 'Activity History' : 'All Activities'}
+          </h2>
         </div>
 
-        {selectedGoal && (
+        {goalId && selectedGoal && (
           <div className="bg-gray-800 rounded-lg p-5 mb-6">
             <h3 className="text-xl font-bold mb-2">
               {goalTypeLabels[selectedGoal.goal_type] || selectedGoal.goal_type}
@@ -92,13 +108,15 @@ const ViewActivities = () => {
 
         {goalActivities.length === 0 ? (
           <div className="text-center py-8 bg-gray-800 rounded-lg">
-            <p className="text-xl">No activities recorded for this goal yet.</p>
-            <Link 
-              to={`/create-activity/${goalId}`} 
-              className="inline-block mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Record Your First Activity
-            </Link>
+            <p className="text-xl">No activities recorded yet.</p>
+            {goalId && (
+              <Link 
+                to={`/create-activity/${goalId}`} 
+                className="inline-block mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Record Your First Activity
+              </Link>
+            )}
           </div>
         ) : (
           <div className="bg-gray-800 rounded-lg overflow-hidden">
@@ -130,7 +148,7 @@ const ViewActivities = () => {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

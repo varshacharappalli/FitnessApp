@@ -1,27 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Target, Activity, PlusCircle, List, Menu, X } from 'lucide-react';
-import useGoalActivityStore from '../store/userGoalsandActivities.js';
 import useUserAuthStore from '../store/userAuth';
 
-const Dashboard = () => {
+const DashboardLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { goals, activities, fetchGoals, fetchAllActivities } = useGoalActivityStore();
-  const { logout } = useUserAuthStore();
-
-  useEffect(() => {
-    fetchGoals();
-    fetchAllActivities();
-  }, [fetchGoals, fetchAllActivities]);
+  const { user, logout } = useUserAuthStore();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const handleViewActivities = () => {
-    navigate('/view-activities');
   };
 
   const handleLogout = async () => {
@@ -46,11 +35,6 @@ const Dashboard = () => {
 
   const isActive = (path) => {
     return location.pathname === path;
-  };
-
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   return (
@@ -103,10 +87,10 @@ const Dashboard = () => {
         <div className="absolute bottom-0 w-full p-4 border-t border-gray-800">
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
-              U
+              {user?.username?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="ml-3">
-              <p className="text-white font-medium">User Profile</p>
+              <p className="text-white font-medium">{user?.username || 'User Profile'}</p>
               <p className="text-gray-400 text-sm">View Profile</p>
             </div>
           </div>
@@ -149,62 +133,7 @@ const Dashboard = () => {
 
         {/* Main content area */}
         <main className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Quick stats */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-gray-400">Total Goals</p>
-                  <p className="text-2xl font-bold">{goals?.length || 0}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Active Goals</p>
-                  <p className="text-2xl font-bold">{goals?.filter(goal => goal.current_value < goal.target_value).length || 0}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Completed Goals</p>
-                  <p className="text-2xl font-bold">{goals?.filter(goal => goal.current_value >= goal.target_value).length || 0}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent activities */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Recent Activities</h3>
-              {activities && activities.length > 0 ? (
-                <div className="space-y-4">
-                  {activities.slice(0, 3).map((activity) => (
-                    <div key={activity.activity_id} className="border-t border-gray-700 pt-4">
-                      <p className="text-white font-medium">{activity.activity_type}</p>
-                      <p className="text-gray-400 text-sm">{formatDate(activity.date)}</p>
-                      <div className="flex justify-between mt-2">
-                        <span className="text-sm text-gray-400">Calories: {activity.calories_burnt}</span>
-                        <span className="text-sm text-gray-400">Distance: {activity.distance}km</span>
-                        <span className="text-sm text-gray-400">Duration: {activity.duration}min</span>
-                      </div>
-                    </div>
-                  ))}
-                  {activities.length > 3 && (
-                    <Link 
-                      to="/view-activities" 
-                      className="text-purple-400 hover:text-purple-300 text-sm mt-4 block"
-                    >
-                      View all activities →
-                    </Link>
-                  )}
-                </div>
-              ) : (
-                <p className="text-gray-400">No recent activities</p>
-              )}
-            </div>
-
-            {/* Progress overview */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Progress Overview</h3>
-              <p className="text-gray-400">No progress data available</p>
-            </div>
-          </div>
+          {children}
         </main>
       </div>
 
@@ -219,4 +148,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardLayout; 

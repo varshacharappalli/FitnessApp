@@ -1,5 +1,5 @@
 import express from 'express';
-import { createActivity, createGoal, deleteGoal, updateGoal, viewGoal, viewActivity } from '../controllers/goals&activities.js';
+import { createActivity, createGoal, deleteGoal, updateGoal, viewGoal, viewActivity, viewAllActivities } from '../controllers/goals&activities.js';
 
 const goalandactivityRoutes = express.Router();
 
@@ -9,5 +9,6 @@ goalandactivityRoutes.delete('/deleteGoal', deleteGoal);
 goalandactivityRoutes.get('/viewGoal', viewGoal); 
 goalandactivityRoutes.post('/viewActivity', viewActivity); 
 goalandactivityRoutes.post('/updateGoal', updateGoal);
+goalandactivityRoutes.get('/allActivities', viewAllActivities);
 
 export default goalandactivityRoutes;

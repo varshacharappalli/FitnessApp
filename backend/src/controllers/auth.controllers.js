@@ -107,4 +107,3 @@ export const logOut = (req, res) => {
     }
 };
 
-

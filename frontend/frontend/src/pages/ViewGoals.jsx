@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useGoalActivityStore from '../store/userGoalsandActivities.js';
+import DashboardLayout from '../components/DashboardLayout';
 
 const ViewGoals = () => {
   const { goals, loading, error, fetchGoals, deleteGoal } = useGoalActivityStore();
@@ -39,7 +40,7 @@ const ViewGoals = () => {
   if (loading) return <div className="text-center py-8 text-white">Loading...</div>;
 
   return (
-    <div className="bg-black text-white min-h-screen p-6">
+    <DashboardLayout>
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold">Your Goals</h2>
@@ -103,7 +104,7 @@ const ViewGoals = () => {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

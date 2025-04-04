@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useGoalActivityStore from '../store/userGoalsandActivities.js'
 
 const CreateGoal = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     goal_type: '',
     target_value: ''
@@ -31,10 +33,16 @@ const CreateGoal = () => {
       await createGoal(formData);
       setSuccess('Goal created successfully!');
       setFormData({ goal_type: '', target_value: '' });
+      // Navigate to viewGoals after a short delay to show the success message
+      setTimeout(() => navigate('/viewGoals'), 1500);
     } catch (err) {
       // Error is handled by the store
       console.error(err);
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/viewGoals');
   };
 
   // Get the unit based on selected goal type
@@ -97,13 +105,22 @@ const CreateGoal = () => {
             />
           </div>
           
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
-            disabled={loading}
-          >
-            {loading ? 'Creating...' : 'Create Goal'}
-          </button>
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
+              disabled={loading}
+            >
+              {loading ? 'Creating...' : 'Create Goal'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>

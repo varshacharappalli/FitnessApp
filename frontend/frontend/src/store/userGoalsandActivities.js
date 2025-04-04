@@ -78,7 +78,12 @@ const useGoalActivityStore = create((set, get) => ({
       set({ loading: false });
       return response.data;
     } catch (error) {
-      console.log(error.message);
+      console.error("Error updating goal:", error);
+      set({
+        error: error.response?.data?.message || 'Error updating goal',
+        loading: false
+      });
+      throw error;
     }
   },
 
@@ -104,6 +109,33 @@ const useGoalActivityStore = create((set, get) => ({
   },
 
   // Activity related actions
+  fetchAllActivities: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get('/api/goals/allActivities');
+      console.log("All activities fetched:", response.data);
+      
+      if (!response.data || !response.data.activities) {
+        console.warn("No activities data in response:", response.data);
+        set({ activities: [], loading: false });
+        return [];
+      }
+      
+      set({ 
+        activities: response.data.activities, 
+        loading: false 
+      });
+      return response.data.activities;
+    } catch (error) {
+      console.error("Error fetching all activities:", error);
+      set({
+        error: error.response?.data?.message || 'Error fetching activities',
+        loading: false
+      });
+      return [];
+    }
+  },
+
   fetchActivities: async (goalId) => {
     set({ loading: true, error: null });
     try {
@@ -112,12 +144,19 @@ const useGoalActivityStore = create((set, get) => ({
         goal_id: goalId 
       });
       
-      console.log("Activities fetched:", response.data.activities);
+      console.log("Activities fetched:", response.data);
+      
+      if (!response.data || !response.data.activities) {
+        console.warn("No activities data in response:", response.data);
+        set({ activities: [], loading: false });
+        return [];
+      }
+      
       set({ 
-        activities: response.data.activities || [], 
+        activities: response.data.activities, 
         loading: false 
       });
-      return response.data.activities || [];
+      return response.data.activities;
     } catch (error) {
       console.error("Error fetching activities:", error);
       set({
@@ -131,31 +170,16 @@ const useGoalActivityStore = create((set, get) => ({
   createActivity: async (activityData) => {
     set({ loading: true, error: null });
     try {
-      console.log("Creating activity with data:", {
-        goal_id: activityData.goalId,
-        activity_type: activityData.activityType,
-        calories_burnt: activityData.caloriesBurnt,
-        distance: activityData.distance,
-        duration: activityData.duration
-      });
+      console.log("Creating activity with data:", activityData);
       
-      // Backend expects goal_id, activity_type, calories_burnt, distance, duration
-      const response = await axiosInstance.post('/api/goals/createActivity', {
-        goal_id: activityData.goalId,
-        activity_type: activityData.activityType,
-        calories_burnt: activityData.caloriesBurnt,
-        distance: activityData.distance,
-        duration: activityData.duration
-      });
+      const response = await axiosInstance.post('/api/goals/createActivity', activityData);
       
       console.log("Activity creation response:", response.data);
       
-      // After creating an activity, update the goal and refresh activities
-      if (response.data) {
-        console.log("Updating goal after activity creation");
-        await get().updateGoal(activityData.goalId);
-        await get().fetchActivities(activityData.goalId);
-      }
+      // Always update the goal and refresh activities after successful activity creation
+      console.log("Updating goal after activity creation");
+      await get().updateGoal(activityData.goal_id);
+      await get().fetchActivities(activityData.goal_id);
       
       set({ loading: false });
       return response.data;
@@ -165,7 +189,7 @@ const useGoalActivityStore = create((set, get) => ({
         error: error.response?.data?.message || 'Error creating activity',
         loading: false
       });
-      return null;
+      throw error; // Re-throw the error so the component can handle it
     }
   }
 }));

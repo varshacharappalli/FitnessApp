@@ -10,12 +10,13 @@ const CreateActivity = () => {
   const [formData, setFormData] = useState({
     goal_id: goalId,
     activity_type: '',
-    calories_burnt: 0,
-    distance: 0,
-    duration: 0,
+    calories_burnt: '',
+    distance: '',
+    duration: '',
   });
   const [success, setSuccess] = useState('');
   const [selectedGoal, setSelectedGoal] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (goals.length === 0) {
@@ -59,7 +60,7 @@ const CreateActivity = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: ['calories_burnt', 'distance', 'duration'].includes(name) ? (value ? parseFloat(value) : 0) : value
+      [name]: ['calories_burnt', 'distance', 'duration'].includes(name) ? value : value
     }));
   };
 
@@ -72,12 +73,17 @@ const CreateActivity = () => {
         return;
     }
 
+    // Convert minutes to MySQL TIME format (HH:MM:SS)
+    const hours = Math.floor(parseFloat(formData.duration) / 60);
+    const minutes = parseFloat(formData.duration) % 60;
+    const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+
     const activityData = {
-      goalId: formData.goal_id,
-      activityType: formData.activity_type,
-      caloriesBurnt: formData.calories_burnt,
-      distance: formData.distance,
-      duration: formData.duration
+      goal_id: formData.goal_id,
+      activity_type: formData.activity_type,
+      calories_burnt: formData.calories_burnt ? parseFloat(formData.calories_burnt) : 0,
+      distance: formData.distance ? parseFloat(formData.distance) : 0,
+      duration: formattedDuration
     };
 
     try {
@@ -89,7 +95,12 @@ const CreateActivity = () => {
         }
     } catch (err) {
         console.error("❌ Error submitting activity:", err);
+        setErrorMessage(err.response?.data?.message || 'Error creating activity');
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/viewGoals');
   };
 
   if (loading && !selectedGoal) return <div className="text-center py-8 text-white">Loading...</div>;
@@ -116,6 +127,12 @@ const CreateActivity = () => {
         {success && (
           <div className="bg-purple-900 border border-purple-700 text-white px-4 py-3 rounded mb-4">
             {success}
+          </div>
+        )}
+        
+        {errorMessage && (
+          <div className="bg-red-900 border border-red-700 text-white px-4 py-3 rounded mb-4">
+            {errorMessage}
           </div>
         )}
         
@@ -148,36 +165,72 @@ const CreateActivity = () => {
             <label className="block text-white font-bold mb-2" htmlFor="calories_burnt">
               Calories Burnt
             </label>
-            <input type="number" id="calories_burnt" name="calories_burnt" value={formData.calories_burnt} onChange={handleChange} className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white" min="0" step="1" required />
+            <input 
+              type="number" 
+              id="calories_burnt" 
+              name="calories_burnt" 
+              value={formData.calories_burnt} 
+              onChange={handleChange} 
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white" 
+              min="0" 
+              step="1" 
+              placeholder="Enter calories burnt"
+              required 
+            />
           </div>
           
           <div>
             <label className="block text-white font-bold mb-2" htmlFor="distance">
               Distance (km)
             </label>
-            <input type="number" id="distance" name="distance" value={formData.distance} onChange={handleChange} className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white" min="0" step="0.01" required />
+            <input 
+              type="number" 
+              id="distance" 
+              name="distance" 
+              value={formData.distance} 
+              onChange={handleChange} 
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white" 
+              min="0" 
+              step="0.01" 
+              placeholder="Enter distance in kilometers"
+              required 
+            />
           </div>
           
           <div>
-  <label className="block text-white font-bold mb-2" htmlFor="duration">
-    Duration (minutes)
-  </label>
-  <input
-    type="number"
-    id="duration"
-    name="duration"
-    value={formData.duration}
-    onChange={handleChange}
-    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white"
-    min="0"
-    step="1"
-    required
-  />
-</div>
+            <label className="block text-white font-bold mb-2" htmlFor="duration">
+              Duration (minutes)
+            </label>
+            <input
+              type="number"
+              id="duration"
+              name="duration"
+              value={formData.duration}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-purple-500 text-white"
+              min="0"
+              step="1"
+              placeholder="Enter duration in minutes"
+              required
+            />
+          </div>
 
-          <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline" disabled={loading}>
-            {loading ? 'Recording...' : 'Record Activity'}
-          </button>
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
+              disabled={loading}
+            >
+              {loading ? 'Recording...' : 'Record Activity'}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>
