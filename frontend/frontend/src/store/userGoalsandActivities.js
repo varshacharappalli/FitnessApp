@@ -114,6 +114,11 @@ const useGoalActivityStore = create((set, get) => ({
     try {
       const response = await axiosInstance.get('/api/goals/allActivities');
       console.log("All activities fetched:", response.data);
+      console.log("Activities array:", response.data.activities);
+      if (response.data.activities && response.data.activities.length > 0) {
+        console.log("Sample activity (first one):", response.data.activities[0]);
+        console.log("Sample activity calories_burnt:", response.data.activities[0].calories_burnt);
+      }
       
       if (!response.data || !response.data.activities) {
         console.warn("No activities data in response:", response.data);

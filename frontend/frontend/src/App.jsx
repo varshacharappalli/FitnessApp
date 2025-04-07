@@ -8,6 +8,7 @@ import CreateActivity from './pages/CreateActivity';
 import ViewGoals from './pages/ViewGoals';
 import ViewActivities from './pages/ViewActivities';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 
 function App() {
 
@@ -25,6 +26,7 @@ function App() {
         <Route path='/view-activities' element={<ViewActivities/>}/>
         <Route path='/view-activities/:goalId' element={<ViewActivities/>}/>
         <Route path='/dashboard' element={<Dashboard/>}/>
+        <Route path='/profile' element={<Profile/>}/>
       </Routes>
     </>
   )
