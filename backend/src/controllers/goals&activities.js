@@ -137,7 +137,7 @@ export const updateGoal = (req, res) => {
             }
 
             if (results.length === 0) {
-                return res.status(404).json({ message: 'No goal found for user' });
+                return res.status(404).json({ message: 'No goal found for this user' });
             }
 
             const goal_type = results[0].goal_type;
@@ -168,42 +168,63 @@ export const updateGoal = (req, res) => {
                     return;
                 }
 
-                const activity_ids = results.map(row => row.activity_id);
-                console.log("Activity IDs found:", activity_ids);
-
-                // Determine which column to sum based on goal type
-                let column;
-                if (goal_type === 'weight_loss') {
-                    column = 'calories_burnt';
-                } else if (goal_type === 'running_distance' || goal_type === 'daily_step') {
-                    column = 'distance';
-                } else if (goal_type === 'exercise_duration') {
-                    column = 'duration';
+                // Calculate the sum based on goal type
+                let sumQuery = '';
+                switch (goal_type) {
+                    case 'weight_loss':
+                        sumQuery = `
+                            SELECT SUM(a.calories_burnt) as total 
+                            FROM Activities a 
+                            INNER JOIN Acheives ach ON a.activity_id = ach.activity_id 
+                            WHERE ach.goal_id = ?
+                        `;
+                        break;
+                    case 'running_distance':
+                        sumQuery = `
+                            SELECT SUM(a.distance) as total 
+                            FROM Activities a 
+                            INNER JOIN Acheives ach ON a.activity_id = ach.activity_id 
+                            WHERE ach.goal_id = ?
+                        `;
+                        break;
+                    case 'exercise_duration':
+                        sumQuery = `
+                            SELECT SUM(TIME_TO_SEC(a.duration)) as total 
+                            FROM Activities a 
+                            INNER JOIN Acheives ach ON a.activity_id = ach.activity_id 
+                            WHERE ach.goal_id = ?
+                        `;
+                        break;
+                    case 'daily_step':
+                        sumQuery = `
+                            SELECT SUM(a.distance) as total 
+                            FROM Activities a 
+                            INNER JOIN Acheives ach ON a.activity_id = ach.activity_id 
+                            WHERE ach.goal_id = ?
+                        `;
+                        break;
+                    default:
+                        return res.status(400).json({ message: 'Invalid goal type' });
                 }
 
-                // Create placeholders for SQL query
-                const placeholders = activity_ids.map(() => '?').join(',');
-                const query1 = `SELECT SUM(${column}) AS total FROM Activities WHERE activity_id IN (${placeholders})`;
-                console.log("Query:", query1, "Values:", activity_ids);
-
-                connection.query(query1, activity_ids, (err, results) => {
+                connection.query(sumQuery, [goal_id], (err, results) => {
                     if (err) {
                         console.log("Error calculating sum:", err.message);
-                        return res.status(500).json({ message: 'Error calculating goal progress' });
+                        return res.status(500).json({ message: 'Error calculating progress' });
                     }
 
-                    const value = results[0].total || 0;
-                    console.log("Calculated value:", value);
+                    const total = results[0].total || 0;
                     
-                    const query3 = 'UPDATE Goals SET current_value = ?, updated_at = ? WHERE goal_id = ?';
-
-                    connection.query(query3, [value, new Date(), goal_id], (err) => {
+                    // Update the goal's current value
+                    connection.query('UPDATE Goals SET current_value = ? WHERE goal_id = ?', [total, goal_id], (err) => {
                         if (err) {
-                            console.log("Error updating goal value:", err.message);
+                            console.log("Error updating goal:", err.message);
                             return res.status(500).json({ message: 'Error updating goal' });
                         }
-
-                        res.status(200).json({ message: 'Goal updated successfully!', current_value: value });
+                        return res.status(200).json({ 
+                            message: 'Goal updated successfully!', 
+                            current_value: total 
+                        });
                     });
                 });
             });
@@ -357,6 +378,12 @@ export const viewAllActivities = (req, res) => {
             if (err) {
                 console.error("Error fetching activities:", err);
                 return res.status(500).json({ message: 'Error retrieving activities' });
+            }
+
+            console.log("Activities fetched from database:", results);
+            if (results.length > 0) {
+                console.log("Sample activity from DB:", results[0]);
+                console.log("Sample activity calories_burnt:", results[0].calories_burnt);
             }
 
             res.status(200).json({ activities: results });
